@@ -1,38 +1,186 @@
-# Import python packages
-import streamlit as st
-from snowflake.snowpark.context import get_active_session
-from snowflake.snowpark.functions import col
+# import streamlit 
+# streamlit.title("my parents new healthy diner")
+# streamlit.header('Breakfast Menu')
+# streamlit.text('🥣Omega 3 & Blueberry Oatmeal')
+# streamlit.text('🥗Kale, Spinach & Rocket Smoothie')
+# streamlit.text('🐔Hard-Boiled Free-Range Egg')
+# streamlit.text('🥑🍞 Avacado Toast')
  
-# Write directly to the app
-st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
-st.write(
-    """Choose the fruits you want in your custom Smoothie
-    """
-)
+# streamlit.header('🍌🥭 Build Your Own Fruit Smoothie 🥝🍇')
+# import pandas
  
-name_on_order = st.text_input('Name on Smoothie:')
-st.write('The name on your Smoothie will be: ', name_on_order)
-session = get_active_session()
-my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
-#st.dataframe(data=my_dataframe, use_container_width=True)
+# my_fruit_list = pandas.read_csv("https://uni-lab-files.s3.us-west-2.amazonaws.com/dabw/fruit_macros.txt")
+# streamlit.dataframe(my_fruit_list)
+# # Let's put a pick list here so they can pick the fruit they want to include 
+# streamlit.multiselect("Pick some fruits:", list(my_fruit_list.index))
  
-ingredients_list = st.multiselect('Choose up to 5 ingredients:', my_dataframe, max_selections = 5)
+# # Display the table on the page.
+# streamlit.dataframe(my_fruit_list)
+# my_fruit_list = my_fruit_list.set_index('Fruit')
  
-if ingredients_list:
+# # lets put a pick list here so they can pick the fruit they want to include
+# Fruits_selected= streamlit.multiselect("Pick some fruits:" , list(my_fruit_list.index),['Avacados', 'Strawberries'])
+# fruits_to_show = my_fruit_list.loc[Fruits_selected]
  
-    ingredients_string = ''
+# # Display the table on the page.
+# streamlit.dataframe(fruits_to_show)
  
-    for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + ' '
+# import requests
+# fruityvice_response = requests.get("https://fruityvice.com/api/fruit/watermelon")
+# streamlit.text(fruityvice_response)
  
-    st.write(ingredients_string)
+# # new session to display fruityvice app response
+# streamlit.header("Fruityvice Fruit Advice!")
+# import requests
+# fruityvice_response = requests.get("https://fruityvice.com/api/fruit/watermelon")
+# streamlit.text(fruityvice_response.json())
  
-    my_insert_stmt = """ insert into smoothies.public.orders(ingredients,NAME_ON_ORDER)
-            values ('""" + ingredients_string + """','"""+name_on_order+ """')"""
+# # write your own comment -what does the next line do? 
+# fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
+# # write your own comment - what does this do?
+# streamlit.dataframe(fruityvice_normalized)
  
-    #st.write(my_insert_stmt)
-    #st.stop()
-    time_to_insert = st.button('Submit Order')
-    if time_to_insert:
-        session.sql(my_insert_stmt).collect()
-        st.success('Your Smoothie is ordered!', icon="✅")
+ 
+# fruit_choice = streamlit.text_input('What fruit would you like information about?','Kiwi')
+# streamlit.write('The user entered ', fruit_choice)
+ 
+# import requests
+# fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + " kiwi")
+ 
+ 
+# # # takes the json version of response and normalize it 
+# # fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
+# # # output it in the screen as table
+# # streamlit.dataframe(fruityvice_normalized)
+ 
+ 
+# import snowflake.connector
+ 
+# my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
+# my_cur = my_cnx.cursor()
+ 
+ 
+import streamlit
+import pandas
+import requests
+import snowflake.connector
+from urllib.error import URLError
+ 
+ 
+streamlit.title('My Parents New Healthy Diner')
+ 
+ 
+streamlit.header('Breakfast Menu')
+ 
+# streamlit.text('Omega 3 and Blueberry Oatmeal')
+# streamlit.text('Kale, Spinach and Rocket Smoothie')
+# streamlit.text('Hard-Boiled Free-Range Egg')
+ 
+ 
+streamlit.text('🥣 Omega 3 and Blueberry Oatmeal')
+streamlit.text('🥗 Kale, Spinach and Rocket Smoothie')
+streamlit.text('🐔 Hard-Boiled Free-Range Egg')
+streamlit.text('🥑🍞 Avocado Toast')
+ 
+streamlit.header('🍌🥭 Build Your Own Fruit Smoothie 🥝🍇')
+ 
+ 
+#import pandas
+my_fruit_list = pandas.read_csv("https://uni-lab-files.s3.us-west-2.amazonaws.com/dabw/fruit_macros.txt")
+my_fruit_list = my_fruit_list.set_index('Fruit')
+ 
+# Let's put a pick list here so they can pick the fruit they want to include 
+fruits_selected = streamlit.multiselect("Pick some fruits:", list(my_fruit_list.index), ['Apple', 'Grapefruit'])
+fruits_to_show = my_fruit_list.loc[fruits_selected] # only show the filtered entries
+ 
+ 
+# Display the table on the page.
+streamlit.dataframe(fruits_to_show)
+ 
+ 
+#repeatable code block, called function
+def get_fruityvice_data(this_fruit_choice):
+  fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + this_fruit_choice)
+  fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
+  return fruityvice_normalized
+# New Section to display fruityvice API response (fruityvice does not require an API key)
+streamlit.header("Fruityvice Fruit Advice!")
+try:
+  fruit_choice = streamlit.text_input('What fruit would you like information about?')
+  if not fruit_choice:
+    streamlit.error("Please select a fruit to get information.")
+  else:
+    back_from_function = get_fruityvice_data(fruit_choice)
+    streamlit.dataframe(back_from_function)
+
+ 
+except URLError as e:
+  streamlit.error()
+#fruit_choice = streamlit.text_input('What fruit would you like information about?','Kiwi')
+#streamlit.write('The user entered ', fruit_choice)
+ 
+#import requests
+#fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + fruit_choice)
+#streamlit.text(fruityvice_response.json()) #just displayed the output to the screen
+ 
+# normalize the json version of the response
+#fruityvice_normalized = pandas.json_normalize(fruityvice_response.json())
+# display on the screen as a table
+#streamlit.dataframe(fruityvice_normalized)
+ 
+ 
+ 
+streamlit.header("View Our Fruit List - Add Your Favorites!!")
+#Snowflake Related Function
+def get_fruit_load_list():
+  with my_cnx.cursor() as my_cur:
+    my_cur.execute("SELECT * FROM FRUIT_LOAD_LIST")
+    return my_cur.fetchall()
+#Add a button to load a fruit
+if streamlit.button('Get Fruit List'):
+  my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
+  my_data_rows = get_fruit_load_list()
+  my_cnx.close() #closing the connection
+  streamlit.dataframe(my_data_rows)
+ 
+ 
+# DO NOT RUN ANYTHING POST HERE WHILE TROUBLESHOOTING IS GOING ON
+#streamlit.stop()
+ 
+# import snowflake.connector
+ 
+ 
+#my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
+#my_cur = my_cnx.cursor()
+# my_cur.execute("SELECT CURRENT_USER(), CURRENT_ACCOUNT(), CURRENT_REGION()")
+# my_data_row = my_cur.fetchone()
+# streamlit.text("Hello from Snowflake:")
+# streamlit.text(my_data_row)
+ 
+ 
+#my_cur.execute("SELECT * FROM FRUIT_LOAD_LIST")
+#my_data_row = my_cur.fetchone() #fetches only one row
+# streamlit.text("FRUIT LOAD LIST CONTAINS:")
+# streamlit.text(my_data_row)
+ 
+#my_data_rows = my_cur.fetchall()
+#streamlit.header("THE FRUIT LOAD LIST CONTAINS:")
+#streamlit.dataframe(my_data_rows)
+ 
+ 
+def insert_row_snowflake(new_fruit):
+  with my_cnx.cursor() as my_cur:
+    my_cur.execute("insert into FRUIT_LOAD_LIST values('" + new_fruit + "')")
+    return 'Thanks for adding ' + new_fruit
+ 
+ 
+add_my_fruit = streamlit.text_input('What fruit would you like to add?')
+if streamlit.button('Add a Fruit to the List'):
+  my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
+  back_from_function = insert_row_snowflake(add_my_fruit)
+  my_cnx.close() #closing the connection
+  streamlit.text(back_from_function)
+# my_cur.execute("SELECT CURRENT_USER(), CURRENT_ACCOUNT(), CURRENT_REGION()")
+# my_data_row = my_cur.fetchone()
+# streamlit.text("Hello from Snowflake:")
+# streamlit.text(my_data_row)
